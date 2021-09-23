@@ -1,0 +1,1012 @@
+#!/usr/bin/perl
+#
+# zeek-log.pod		This is a pod file for the zeek-log Zeek script.
+#
+#	usage:
+#		perldoc zeek-log.pod
+#
+# Revision History
+#	1.0	Initial revision.					200403
+#
+#	Written by Wayne Morrison, 200403.
+#
+
+use strict;
+
+#
+# Version information.
+#
+my $NAME   = "zeek-log.pod";
+my $VERS   = "$NAME version: 1.0";
+
+1;
+
+##############################################################################
+
+=pod
+
+=head1 NAME
+
+B<zeek-log> - Summarizes data from a set of B<Zeek> log files
+
+=head1 SYNOPSIS
+
+    zeek-log [options] <logname1> ... <lognameN>
+
+=head1 DESCRIPTION
+
+B<zeek-log> summarizes data from a B<Zeek> log, and provides shortcuts for
+displaying log-specific fields.  This command may be used with any B<Zeek> log
+file.  B<zeek-log>'s primary functionality is to provide output formatting
+formatting and log-specific selection.
+
+Multiple log files of different protocols may be given on a single command
+line.  The files will be displayed in order, as one would expect.  Also,
+different selection options for each log type may be specified.
+
+B<zeek-log> has predefined lists of fields that are displayed when log files of
+certain protocols are given on the command line.  The supported protocols are
+DNS, NTP, and SMTP.  Protocols unsupported by B<zeek-log> may be usefully
+displayed when used with the I<-fields> option.
+
+Unsupported log files may be used with B<zeek-log>, and they will display all
+the fields in the log file.  This is essentially equivalent to just looking
+at the log file directly, except that B<zeek-log> display the log in a nice,
+orderly fashion with columns lining up cleanly.
+
+An example of log-specific selection is that the ``-sender" option used in
+conjunction with an SMTP B<Zeek> log will have B<zeek-log> display
+sender-specific data from the log file.  The type of the B<Zeek> log is
+determined by the value of the log file's ``#path'' line.
+
+The B<zeek-cut> command parses the specified B<Zeek> log and provides the
+selected data to B<zeek-log>.  The data are formatted for a more readable
+display than is provided by B<zeek-cut>.
+
+A set of selection options select the data fields to display.  The selection
+options are described in a section below.
+
+If no selection option is given, then a summary is given that consists of
+certain fields specific to the log file's type.  For example, when an SMTP
+B<Zeek> log is specified without a selection option being given, the data from
+the following SMTP header fields, in this order:
+
+	MailFrom
+	RcptTo
+	From
+	To
+	Cc
+	Reply-To
+	Date
+	Subject
+
+If no default field list has been set up for particular type of B<zeek-log>,
+then all the fields will be displayed.
+
+Output may be given in either normal or CSV format.  When given in normal
+format, B<zeek-log> tries to put the data into columns that will read nicely.
+CSV format forces the output into columns for display in a spreadsheet
+program, or another program which understands CSV.
+
+
+=head1 SELECTION OPTIONS
+
+There are several options that allow data selection from B<Zeek> logfiles.
+Some options provide shorthand ways to refer to protocol-specific sets of
+options.  There are others that allow users to choose the data to be
+displayed.
+
+There are default fields defined for each supported protocol.  If a logfile
+for an unsupported protocol is given to B<zeek-log>, then a default set of
+options will be displayed.  This set is the timestamp of each entry, since
+that field appears to be standard to all types of logfile.
+
+The I<-fields> option allows a user to select the specific set of fields to be
+displayed in an invocation of B<zeek-log>.  Multiple fields must be separated
+by commas.  If the default set of options should be included along with the
+user-selected fields, then the I<-usedefs> option adds the defaults to the
+user's field list.
+
+B<zeek-log>'s selection options select the fields from each entry that will be
+displayed.  Thinking of the B<zeek-log> output as a table, these options
+select the columns that will be shown.  There are selection options that are
+specific to a type of B<Zeek> logfile.  These are described here, in
+logfile-specific sections.
+
+=head2 Selection Options for DNS Zeek Logs
+
+The fields displayed for a B<dns.log> file will depend on the argument
+given to the I<-dns> option.
+
+The following option arguments will display these fields:
+
+	-dns default	(defaults)
+
+		ORIGHOST
+		RESPHOST
+		QUERY
+		QTYPE_NAME
+		ANSWERS
+
+		These values will also be displayed if a dns.log
+		file is named on the command line, but the -dns
+		option is not specified.
+
+	-dns defts	(DNS default + time)
+		TS
+		ORIGHOST
+		RESPHOST
+		QUERY
+		QTYPE_NAME
+		ANSWERS
+
+	-dns query	(DNS query fields)
+		ORIGHOST
+		QUERY
+		QCLASS_NAME
+		QTYPE_NAME
+		RCODE_NAME
+		ANSWERS
+
+	-dns flags	(DNS flag fields)
+		TS
+		UID
+		ORIGHOST
+		RESPHOST
+		TRANS_ID
+		QUERY
+		QCLASS_NAME
+		QTYPE_NAME
+		RCODE_NAME
+		AA
+		TC
+		RD
+		RA
+		Z
+		ANSWERS
+		REJECTED
+
+	-dns times	(DNS flag fields)
+		TS
+		UID
+		ORIGHOST
+		RESPHOST
+		RTT
+		TTLS
+
+	-dns all	(all DNS fields)
+
+		If the "all" argument is given with -dns, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+=head2 Selection Options for SMTP Zeek Logs
+
+The fields displayed for an smtp.log file will depend on the argument given to
+the I<-smtp> option.
+
+The following option arguments will display these fields:
+
+	-smtp default	(defaults)
+		MAILFROM
+		RCPTTO
+		FROM
+		TO
+		CC
+		REPLY_TO
+		DATE
+		SUBJECT
+
+		These values will also be displayed if an smtp.log
+		file is named on the command line, but the -smtp
+		option is not specified.
+
+	-smtp defts	(SMTP default + time)
+		TS
+		MAILFROM
+		RCPTTO
+		FROM
+		TO
+		CC
+		REPLY_TO
+		DATE
+		SUBJECT
+
+	-smtp sender	(SMTP sender fields)
+		ORIGHOST
+		RESPHOST
+		HELO
+		FROM
+		MAILFROM
+		REPLY_TO
+
+	-smtp recipient	(SMTP recipient fields)
+		ORIGHOST
+		RESPHOST
+		RCPTTO
+		TO
+		CC
+		IN_REPLY_TO
+
+	-smtp recip
+		This is an alias for "-smtp recipient".
+
+	-smtp names	(SMTP sender/receiver fields)
+		ORIGHOST
+		RESPHOST
+		HELO
+		FROM
+		MAILFROM
+		REPLY_TO
+		RCPTTO
+		TO
+		CC
+		IN_REPLY_TO
+
+	-smtp justnames	(SMTP sender/receiver fields)
+		HELO
+		FROM
+		MAILFROM
+		REPLY_TO
+		RCPTTO
+		TO
+		CC
+		IN_REPLY_TO
+
+	-smtp all	(all SMTP fields)
+
+		If the "all" argument is given with -smtp, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+
+=head2 Selection Options for NTP Zeek Logs
+
+Nine different log files provide NTP protocol information.  These
+files have their own options and default displays.  The files are:
+
+	ntp.log			complete log of NTP use
+	ntp-base.log		log of all NTP packets
+	ntp-ctl.log 		log of NTP packets with mode 6
+	ntp-extensions.log	log of NTP extension data
+	ntp-kisscode.log	log of NTP kisscode data
+	ntp-mode7.log		log of NTP packets with mode 7
+	ntp-oldversions.log	log of NTP packets using old
+				versions of NTP
+	ntp-servers.log		summarization of NTP servers
+	ntp-std.log     	log of NTP packets with modes 1-5
+
+The options and field selectors for each log are given below.
+
+=head3 ntp.log
+
+The fields displayed for an ntp.log file will depend on the argument
+given to the I<-ntp> option.
+
+The following option arguments will display these fields:
+
+	-ntp default	(defaults)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+
+		These values will also be displayed if an ntp.log
+		file is named on the command line, but the -ntp
+		option is not specified.
+
+	-ntp defts	(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+
+	-ntp times	(NTP time fields and host data)
+
+		ORIGHOST
+		RESPHOST
+		MODENAME
+		PRECISION
+		REF_T
+		ORIGINATE_T
+		RECEIVE_T
+		XMIT_T
+
+	-ntp stats	(NTP statistics fields and host data)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+		POLL
+		PRECISION
+		DELAY
+
+	-ntp all	(all NTP fields)
+
+		If the "all" argument is given with -ntp, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+A colon and a comma-separated list of field names can be appended to the
+option argument in order to include additional fields with the predefined
+set of fields.  For example,
+
+	-ntp defts:uid,poll
+
+will include the connection UID and the poll value with the default fields
+and the timestamp.
+
+=head3 ntp-base.log
+
+The B<ntp-base.log> file contains records for all the NTP messages that have
+been received.  This includes the standard (modes 1-5) messages, the control
+messages (mode 6), and the mode 7 messages.  The data in B<ntp-base.log> is
+primarily from the standard messages.  Basic data for the control and mode 7
+messages are included to make it easier to see how those messages fit into
+the overall NTP stream.
+
+The fields displayed for an B<ntp-base.log> file will depend on the argument
+given to the I<-ntpbase> option.
+
+The following option arguments will display these fields:
+
+	-ntpbase default	(defaults)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+
+		These values will also be displayed if an ntp-base.log
+		file is named on the command line, but the -ntpbase
+		option is not specified.
+
+	-ntpbase defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+
+	-ntpbase times		(NTP time fields and host data)
+
+		ORIGHOST
+		RESPHOST
+		MODENAME
+		PRECISION
+		REF_T
+		ORIGINATE_T
+		RECEIVE_T
+		XMIT_T
+
+	-ntpbase stats		(NTP statistics fields and host data)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		MODENAME
+		POLL
+		PRECISION
+		DELAY
+
+	-ntpbase stratum	(NTP stratum fields)
+
+		ORIGHOST
+		RESPHOST
+		MODE
+		STRATUM
+		STRATUMNAME
+		KISS-CODE
+		REF-ID
+		REF-ADDR
+
+	-ntpbase all		(all NTP fields)
+
+		If the "all" argument is given with -ntpbase, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpbase defts:uid,poll
+
+will include the connection UID and the poll value with the default
+fields and the timestamp.
+
+=head3 ntp-ctl.log
+
+The fields displayed for an B<ntp-ctl.log> file will depend on the argument
+given to the I<-ntpctl> option.
+
+The following option arguments will display these fields:
+
+	-ntpctl default	(defaults)
+
+		ORIGHOST
+		RESPHOST
+		OPCODENAME
+		RESPBIT
+		ERRBIT
+		MOREBIT
+		SEQUENCE
+		ASSOC-ID
+		STATUS
+
+		These values will also be displayed if an ntp-ctl.log
+		file is named on the command line, but the -ntpctl
+		option is not specified.
+
+	-ntpctl defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		OPCODENAME
+		RESPBIT
+		ERRBIT
+		MOREBIT
+		SEQUENCE
+		ASSOC-ID
+		STATUS
+
+	-ntpctl crypto		(NTP cryptographic fields)
+
+		ORIGHOST
+		RESPHOST
+		OPCODENAME
+		ASSOC-ID
+		KEY-ID
+		CRYPTO-CKSUM
+
+	-ntpctl data		(NTP data fields)
+
+		ORIGHOST
+		RESPHOST
+		OPCODENAME
+		ASSOC-ID
+		DATA
+
+	-ntpctl all	(all NTP control-message fields)
+
+		If the "all" argument is given with -ntpctl, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpctl crypto:data
+
+will include the data field with the cryptographic fields.
+
+=head3 ntp-extensions.log
+
+The fields displayed for an B<ntp.log> file will depend on the argument
+given to the I<-ntpext> option.
+
+NOTE:  B<Zeek> lost some features in the migration from B<Bro>.  The extension
+data is not currently returned by B<Zeek>, so the B<ntp-extensions.log> is not
+created by B<ntp.zeek>.  Thus, the data and options described below are not
+currently available.
+
+The following option arguments will display these fields:
+
+	-ntpext default		(defaults)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		ENTRYTYPE
+
+		These values will also be displayed if an
+		ntp-extensions.log file is named on the command
+		line, but the -ntpext option is not specified.
+
+	-ntpext defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		ENTRYTYPE
+
+	-ntpext data		(hosts and extension data)
+
+		ORIGHOST
+		RESPHOST
+		STRATUMNAME
+		EXCESSLEN
+		FIELDTYPE
+		EXTLEN
+		ENTRYTYPE
+
+	-ntpext all		(all NTP extensions fields)
+
+		If the "all" argument is given with -ntpext,
+		then all the fields in each line will be
+		displayed.  This has the same effect as just
+		using zeek-cut, but it does put the output
+		into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpext data:uid
+
+will include the connection UID with the data fields.
+
+=head3 ntp-kisscode.log
+
+The fields displayed for an B<ntp-kisscode.log> file will depend on the
+argument given to the I<-ntpkiss> option.
+
+The following option arguments will display these fields:
+
+	-ntpkiss default		(defaults)
+
+		ORIGHOST
+		RESPHOST
+		MODENAME
+		STRATUMNAME
+		KISSCODE
+		REFID
+
+		These values will also be displayed if an
+		ntp-kisscode.log file is named on the command
+		line, but the -ntpkiss option is not specified.
+
+	-ntpkiss defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		MODENAME
+		STRATUMNAME
+		KISSCODE
+		REFID
+
+	-ntpkiss data		(untranslated data)
+
+		ORIGHOST
+		RESPHOST
+		MODE
+		STRATUM
+		KISSCODE
+		REFID
+
+	-ntpkiss all		(all NTP kiss-code/ref-id fields)
+
+		If the "all" argument is given with -ntpkiss,
+		then all the fields in each line will be
+		displayed.  This has the same effect as just
+		using zeek-cut, but it does put the output
+		into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpkiss default:mode,stratum
+
+will include the mode number and stratum number with the data fields.
+
+
+=head3 ntp-mode7.log
+
+The fields displayed for an B<ntp-mode7.log> file will depend on the
+argument given to the I<-ntpm7> option.
+
+The following option arguments will display these fields:
+
+	-ntpm7 default	(defaults)
+
+		ORIGHOST
+		RESPHOST
+		REQCODE
+		SEQUENCE
+		IMPLEMENTATION
+		ERROR
+
+		These values will also be displayed if an ntp-mode7.log
+		file is named on the command line, but the -ntpm7
+		option is not specified.
+
+	-ntpm7 defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		REQCODE
+		SEQUENCE
+		IMPLEMENTATION
+		ERROR
+
+	-ntpm7 data		(NTP data fields)
+
+		ORIGHOST
+		RESPHOST
+		REQCODE
+		SEQUENCE
+		DATA
+
+	-ntpm7 all	(all NTP control-message fields)
+
+		If the "all" argument is given with -ntpm7, then all
+		the fields in each line will be displayed.  This
+		has the same effect as just using zeek-cut, but it
+		does put the output into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpm7 data:ts
+
+will include the timestamp field with the data fields.
+
+=head3 ntp-oldversions.log
+
+The fields displayed for an B<ntp-oldversions.log> file will depend
+on the argument given to the I<-ntpold> option.
+
+The following option arguments will display these fields:
+
+	-ntpold default		(defaults)
+
+		ORIGHOST
+		RESPHOST
+		VERSION
+		MODENAME
+		STRATUMNAME
+
+		These values will also be displayed if an
+		ntp-oldversions.log file is named on the command
+		line, but the -ntpold option is not specified.
+
+	-ntpold defts		(defaults, with the timestamp)
+
+		TS
+		ORIGHOST
+		RESPHOST
+		VERSION
+		MODENAME
+		STRATUMNAME
+
+	-ntpold all		(all NTP old-versions fields)
+
+		If the "all" argument is given with -ntpold,
+		then all the fields in each line will be
+		displayed.  This has the same effect as just
+		using zeek-cut, but it does put the output
+		into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpold default:uid
+
+will include the connection UID with the default fields.
+
+=head3 ntp-servers.log
+
+The fields displayed for an B<ntp-servers.log> file will depend
+on the argument given to the I<-ntpservers> option.
+
+The following option arguments will display these fields:
+
+	-ntpservers default	(defaults)
+
+		TS
+		HADDR
+		STRATUMNAME
+		RESPONSES
+		ENTRYTYPE
+
+		These values will also be displayed if an
+		ntp-servers.log file is named on the command
+		line, but the -ntpservers option is not specified.
+
+	-ntpservers defts	(defaults, with the timestamp)
+
+		TS
+		HADDR
+		STRATUMNAME
+		RESPONSES
+		ENTRYTYPE
+
+	-ntpservers all		(all NTP servers fields)
+
+		If the "all" argument is given with -ntpservers,
+		then all the fields in each line will be
+		displayed.  This has the same effect as just
+		using zeek-cut, but it does put the output
+		into a columnar format.
+
+A colon and a comma-separated list of field names can be appended
+to the option argument in order to include additional fields with
+the predefined set of fields.  For example,
+
+	-ntpservers default:stratum
+
+will include the stratum number with the default fields.
+
+=head3 ntp-std.log
+
+The B<ntp-std.log> file contains records for all the NTP standard (modes 1-5)
+messages that have been received.  The log format and options for this log
+file are the same as those of the B<ntp-base.log> file, except that I<-ntpstd>
+option selects the fields to be displayed.  See the section on B<ntp-base.log>
+above for details on arguments to the I<-ntpstd> option.
+
+The fields displayed for an B<ntp-std.log> file will depend on the argument
+given to the I<-ntpstd> option.
+
+
+=head1 FILTER OPTIONS
+
+B<zeek-log>'s filter option selects the entries from the logfile that will
+be displayed.  Thinking of the B<zeek-log> output as a table, these filter
+options select the rows that will be shown.
+
+Filters are defined according to the field names of the B<Zeek> logfiles.
+For example, a filter may be defined that looks for a value in an SMTP
+logfile in the ``mailfrom'' or ``from'' fields.  A filter will contain a
+field name and a data value.  The specified field will be searched for
+the data value, and only those entries with a match in that field will
+be displayed.
+
+Currently, B<zeek-log>'s filters are fairly simple.  The filter's data
+value only has to appear inside the field values, there is not (yet?)
+any regular-expression style of searching, no way of anchoring the
+data value at the beginning of the field data, wildcards are not
+supported.
+
+Filters may only be defined for fields that are appearing in the data
+returned by B<zeek-cut>.  If the only field names being displayed from an
+SMTP logfile are the ``from'' and ``to'' fields, then defining a filter
+for the ``subject'' field will have no effect.
+
+Multiple filters may be defined for a single invocation of B<zeek-log>.
+These filters are logically ORed, not ANDed.
+
+Examples:
+
+   1. zeek-log -filter from=example.com smtp.log
+
+	This filter will only display entries with "example.com"
+	in the "from" field of an SMTP logfile.
+	The following values would match this filter:
+		bob@example.com
+		bob@testexample.com
+		bob@test.example.com
+		bob@example.com.au
+		bob@example.commerce.gov
+
+   2. zeek-log -filter qtype_name=NS dns.log
+
+	This filter will only display entries with "NS" in
+	the "qtype_name" field of a DNS logfile.
+	The following values would match this filter, and
+	are expected possibilities for this field:
+		NS
+		NSAP
+		NSAP_PTR
+
+   3. zeek-log -filter from=bob@example.com -filter from=mary@example.net dns.log
+
+	This filter will only display entries that contain
+	*either* "bob@example.com" or "mary@example.com"
+	The following values would match this filter:
+		bob@example.com
+		mary@example.net
+		marybob@example.com
+		mary@example.com.
+
+   4. zeek-log -filter proto=tcp -filter rcode_name=NXDOMAIN dns.log
+
+	This filter will only display entries with "tcp" in
+	the "proto" field or "NXDOMAIN" in the "rcode_name"
+	field of a DNS logfile.
+
+Currently, protocol translations are not done for field values.  If you
+want to display entries with a query type of TXT, then either of these
+filters must be used:
+
+	-filter qtype=16
+	-filter qtype_name=TXT
+
+Defining a filter for ``qtype=TXT'' will not work as hoped.
+
+=head1 OPTIONS
+
+B<zeek-log> takes the following options:
+
+=over 4
+
+=item I<-csv>
+
+Display information in CSV format.
+
+=item I<-date>
+
+Translate date fields to human-readable format.  This is implemented by
+passing the I<-d> option to B<zeek-cut>.  B<zeek-cut> itself determines
+which fields should be translated and to translate them.
+
+=item I<-dns E<lt>subcommandE<gt>>
+
+Display DNS entries from a dns.log.  The E<lt>subcommandE<gt> defines which
+fields will be displayed.
+
+(DNS)
+
+=item I<-fields>
+
+Specify a set of field names that will be displayed.  This is a
+comma-separated list of names for the data stored in a B<Zeek> logfile.
+
+=item I<-filter>
+
+Define a filter select entries to display.  This may be used multiple times
+in a single execution.
+
+=item I<-logfiles>
+
+Show the supported B<Zeek> log files.
+
+=item I<-ntp E<lt>subcommandE<gt>>
+
+Display NTP data from an B<ntp.log>.  The E<lt>subcommandE<gt> defines which
+fields will be displayed.
+
+(NTP)
+
+=item I<-ntpbase E<lt>subcommandE<gt>>
+
+Display NTP data from an B<ntp-base.log>.  The E<lt>subcommandE<gt> defines
+which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpctl E<lt>subcommandE<gt>>
+
+Display NTP control data from an B<ntp-ctl.log>.  The E<lt>subcommandE<gt>
+defines which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpext E<lt>subcommandE<gt>>
+
+Display NTP extensions data from an B<ntp-extensions.log>.  The
+E<lt>subcommandE<gt> defines which fields will be displayed.
+
+B<Zeek> lost some features in the migration from B<Bro>.  The extension data is
+not currently returned by B<Zeek>, so the B<ntp-extensions.log> is not created
+by B<ntp.log>.  Thus, the data and options described below are not currently
+available.
+
+(NTP)
+
+=item I<-ntpkiss E<lt>subcommandE<gt>>
+
+Display NTP kiss-code and ref-id data from an B<ntp-kisscode.log>.  The
+E<lt>subcommandE<gt> defines which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpm7 E<lt>subcommandE<gt>>
+
+Display NTP mode-7 data from an B<ntp-mode7.log>.  The E<lt>subcommandE<gt>
+defines which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpold E<lt>subcommandE<gt>>
+
+Display data on use of old versions of NTP from an B<ntp-oldversions.log>.
+The E<lt>subcommandE<gt> defines which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpservers E<lt>subcommandE<gt>>
+
+Display data on NTP servers from an B<ntp-servers.log>.  The
+E<lt>subcommandE<gt> defines which fields will be displayed.
+
+(NTP)
+
+=item I<-ntpstd E<lt>subcommandE<gt>>
+
+Display NTP data from an B<ntp-std.log>.  The E<lt>subcommandE<gt> defines
+which fields will be displayed.
+
+(NTP)
+
+=item I<-smtp E<lt>subcommandE<gt>>
+
+Display SMTP entries from an smtp.log.  The E<lt>subcommandE<gt> defines which
+fields will be displayed.
+
+(SMTP)
+
+=item I<-showfields>
+
+Display the field names and field types of a B<Zeek> logfile.
+
+=item I<-subcmds E<lt>protocolE<gt>>
+
+Display the option subcommands for the specified protocol.  Strictly speaking,
+E<lt>protocolE<gt> isn't really a protocol; rather, it's the type of a B<Zeek>
+log file, such as dns, ntp, or ntpservers.
+
+If ``all'' is given for the protocol, or if no protocol is given at all, then
+all the supported protocols and their subcommands will be displayed.
+
+=item I<-usedefs>
+
+Include the default fields in the output.  This option only takes effect when
+used in conjunction with the I<-fields> option.
+
+=item I<-verbose>
+
+Display verbose information.
+
+=item I<-Version>
+
+Display the version information for B<zeek-log>.
+
+=item I<-help>
+
+Display a help message.
+
+=item I<-man>
+
+Display this manpage.
+
+=back
+
+=head1 SUPPORTING NEW LOGS
+
+B<zeek-log> is a general tool for handling multiple types of B<Zeek> logfiles.
+Adding support for new logfiles is not difficult and some support can
+be added very quickly.
+
+There are several particular places that must be modified in order to
+support additional B<Zeek> logfiles:
+
+	- The getopts() routine must be modified to support a new
+	  selection option.
+
+	- The getfields() routine must be modified to specify the fields
+	  to be displayed for the various selection option arguments.
+
+	- Add field "constants" for the log file's fields.
+
+It would be easiest to search for all ``ntpbase'' in the script and add 
+code that provides similar functionality as required for the new log file.
+
+=head1 AUTHOR
+
+Wayne Morrison, Wayne.Morrison@parsons.com
+
+=head1 SEE ALSO
+
+B<zeek-cut(1)>
+
+=cut
+
